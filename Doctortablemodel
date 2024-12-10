@@ -1,0 +1,102 @@
+import javax.swing.table.AbstractTableModel;
+import java.util.ArrayList;
+import java.util.List;
+
+public class DoctorTableModel extends AbstractTableModel {
+    private final List<Doctor> doctors;
+    private final List<Doctor> filteredDoctors;
+    private final String[] columnNames = {
+        "Name", "Contact", "Email", "Address", "DOB", "Age", 
+        "Department", "Specialization", "Qualification", 
+        "Start Time", "End Time", "Available From", "Available To"
+    };
+    private JsonHandler jsonHandler;
+
+    public DoctorTableModel() {
+        jsonHandler = new JsonHandler();
+        this.doctors = jsonHandler.readFromJson();
+        this.filteredDoctors = jsonHandler.readFromJson();
+        
+        if (doctors == null) {
+            doctors = new ArrayList<>();
+        }
+        if (filteredDoctors == null) {
+            filteredDoctors = new ArrayList<>();
+        }
+    }
+
+    @Override
+    public int getRowCount() {
+        return filteredDoctors.size();
+    }
+
+    @Override
+    public int getColumnCount() {
+        return columnNames.length;
+    }
+
+    @Override
+    public String getColumnName(int column) {
+        return columnNames[column];
+    }
+
+    @Override
+    public Object getValueAt(int rowIndex, int columnIndex) {
+        Doctor doctor = filteredDoctors.get(rowIndex);
+        switch (columnIndex) {
+            case 0: return doctor.getName();
+            case 1: return doctor.getContact();
+            case 2: return doctor.getEmail();
+            case 3: return doctor.getAddress();
+            case 4: return doctor.getDob();
+            case 5: return doctor.getAge();
+            case 6: return doctor.getDepartment();
+            case 7: return doctor.getSpecialization();
+            case 8: return doctor.getQualification();
+            case 9: return doctor.getStartTime();
+            case 10: return doctor.getEndTime();
+            case 11: return doctor.getAvailableFromDay();
+            case 12: return doctor.getAvailableToDay();
+            default: return null;
+        }
+    }
+
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+        return false; // cells are not editable
+    }
+
+    public void addDoctor(Doctor doctor) {
+        doctors.add(doctor);
+        jsonHandler.writeToJson(doctors);
+        filteredDoctors.add(doctor);
+        fireTableDataChanged();
+    }
+
+    public void removeDoctor(int rowIndex) {
+        doctors.remove(rowIndex);
+        jsonHandler.writeToJson(doctors);
+        filteredDoctors.remove(rowIndex);
+        fireTableRowsDeleted(rowIndex, rowIndex);
+    }
+
+    public void filter(String query) {
+        filteredDoctors.clear();
+        for (Doctor doctor : doctors) {
+            if (String.valueOf(doctor.getAge()).contains(query)
+                    || doctor.getName().toLowerCase().contains(query)
+                    || doctor.getContact().toLowerCase().contains(query)
+                    || doctor.getEmail().toLowerCase().contains(query)
+                    || doctor.getSpecialization().toLowerCase().contains(query)) {
+                filteredDoctors.add(doctor);
+            }
+        }
+        fireTableDataChanged();
+    }
+
+    public void resetFilter() {
+        filteredDoctors.clear();
+        filteredDoctors.addAll(doctors);
+        fireTableDataChanged();
+    }
+}
